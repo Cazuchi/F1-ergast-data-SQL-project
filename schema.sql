@@ -231,14 +231,15 @@ CREATE TABLE results (
     laps INT, 
     totalRaceTime INTERVAL,
     milliseconds INT, 
-    fastestLap INT, 
+    fastestLap INT,
+    fastestLapRank INT, 
     fastestLapTime INTERVAL,
     fastestLapSpeed NUMERIC, 
     statusId INT REFERENCES race_statuscodes(statusId)
 );
 
-INSERT INTO results (raceId, driverId, constructorId, position, points, laps, totalRaceTime, milliseconds, fastestLap, fastestLapTime, fastestLapSpeed, statusId)
-SELECT raceId, driverId, constructorId, NULLIF(position, '\N')::INT, NULLIF(points, '\N')::NUMERIC, laps, NULLIF("time", '\N')::INTERVAL, NULLIF(milliseconds, '\N')::INT, NULLIF(fastestLap, '\N')::INT, NULLIF(fastestLapTime, '\N')::INTERVAL, NULLIF(fastestLapSpeed, '\N')::NUMERIC, statusId FROM results_staging_table;
+INSERT INTO results (raceId, driverId, constructorId, position, points, laps, totalRaceTime, milliseconds, fastestLap, fastestLapRank, fastestLapTime, fastestLapSpeed, statusId)
+SELECT raceId, driverId, constructorId, NULLIF(position, '\N')::INT, NULLIF(points, '\N')::NUMERIC, laps, NULLIF("time", '\N')::INTERVAL, NULLIF(milliseconds, '\N')::INT, NULLIF(fastestLap, '\N')::INT, NULLIF("rank", '\N')::INT, NULLIF(fastestLapTime, '\N')::INTERVAL, NULLIF(fastestLapSpeed, '\N')::NUMERIC, statusId FROM results_staging_table;
 
 CREATE TABLE constructor_standings (
     raceId INT REFERENCES races(raceId),
