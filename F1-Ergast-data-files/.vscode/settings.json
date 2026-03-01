@@ -1,0 +1,15 @@
+{
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "F1-ergast-project",
+            "database": "f1db",
+            "username": "f1user",
+            "password": "f1password"
+        }
+    ]
+}
