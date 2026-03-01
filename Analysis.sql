@@ -74,12 +74,12 @@ INSERT INTO points_for_fastest_lap (fastestlaprank, bonus_points) VALUES
 (1, 1);
 
 WITH adjusted_results as (
-    SELECT r.raceid, r.driverid, r.position, r.fastestlaprank, COALESCE(mps.modern_points, 0) AS modern_points
+    SELECT r.raceid, r.driverid, r.position, r.fastestlaprank, COALESCE(mps.modern_points, 0) AS modern_points -- Coalesce used to handle cases that return NULL. In this case when a position does NOT reward any points.
     FROM results r
     LEFT JOIN modern_points_system mps ON r.position = mps.position
 ),
 adjusted_results_with_bonus as (
-    SELECT ar.raceid, ar.driverid, ar.position, ar.fastestlaprank, ar.modern_points, COALESCE(pffl.bonus_points, 0) as bonus_points
+    SELECT ar.raceid, ar.driverid, ar.position, ar.fastestlaprank, ar.modern_points, COALESCE(pffl.bonus_points, 0) as bonus_points -- Coalesce used to handle cases that return NULL. In this case for fastest lap time that don't reward points (only the #1 fastest lap per race gets awarded +1 points).
     FROM adjusted_results ar
     LEFT JOIN points_for_fastest_lap pffl ON ar.fastestlaprank = pffl.fastestlaprank
 ),
