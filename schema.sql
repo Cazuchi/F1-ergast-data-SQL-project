@@ -168,28 +168,28 @@ Section for organizing all data imports. All data tables come from .csv files in
 */
 
 COPY drivers (driverId, driverRef) 
-FROM 'C:\Users\mikee\Desktop\Projects\F1-ergast-data-SQL-project\F1-Ergast-data-files\drivers.csv' DELIMITER ',' CSV HEADER;
+FROM '/data/drivers.csv' DELIMITER ',' CSV HEADER;
 
 COPY constructors_staging_table (constructorId, "name") 
-FROM 'C:\Users\mikee\Desktop\Projects\F1-ergast-data-SQL-project\F1-Ergast-data-files\constructors.csv' DELIMITER ',' CSV HEADER;
+FROM '/data/constructors.csv' DELIMITER ',' CSV HEADER;
 
 COPY circuits_staging_table (circuitId, "name", alt) 
-FROM 'C:\Users\mikee\Desktop\Projects\F1-ergast-data-SQL-project\F1-Ergast-data-files\circuits.csv' DELIMITER ',' CSV HEADER;
+FROM '/data/circuits.csv' DELIMITER ',' CSV HEADER;
 
 COPY race_statuscodes_staging_table (statusId, "status") 
-FROM 'C:\Users\mikee\Desktop\Projects\F1-ergast-data-SQL-project\F1-Ergast-data-files\status.csv' DELIMITER ',' CSV HEADER;
+FROM '/data/status.csv' DELIMITER ',' CSV HEADER;
 
 COPY races_staging_table (raceId, "year", circuitId, "time") 
-FROM 'C:\Users\mikee\Desktop\Projects\F1-ergast-data-SQL-project\F1-Ergast-data-files\races.csv' DELIMITER ',' CSV HEADER;
+FROM '/data/races.csv' DELIMITER ',' CSV HEADER;
 
 COPY results_staging_table (raceId, driverId, constructorId, position, points, laps, "time", milliseconds, fastestLap, fastestLapTime, fastestLapSpeed, statusId) 
-FROM 'C:\Users\mikee\Desktop\Projects\F1-ergast-data-SQL-project\F1-Ergast-data-files\results.csv' DELIMITER ',' CSV HEADER;
+FROM '/data/results.csv' DELIMITER ',' CSV HEADER;
 
 COPY lap_times_staging_table (raceId, driverId, lap, position, "time", milliseconds)
-FROM 'C:\Users\mikee\Desktop\Projects\F1-ergast-data-SQL-project\F1-Ergast-data-files\lap_times.csv' DELIMITER ',' CSV HEADER;
+FROM '/data/lap_times.csv' DELIMITER ',' CSV HEADER;
 
 COPY pit_stops_staging_table (raceId, driverId, "stop", lap, "time", duration, milliseconds)
-FROM 'C:\Users\mikee\Desktop\Projects\F1-ergast-data-SQL-project\F1-Ergast-data-files\pit_stops.csv' DELIMITER ',' CSV HEADER;
+FROM '/data/pit_stops.csv' DELIMITER ',' CSV HEADER;
 
 /*
 RENAMING AREA:
@@ -226,13 +226,13 @@ THESE REFERENCE VARIABLES IN THAT AREN'T AVAILABLE UNTIL AFTER THE RENAME SECTIO
 */
 
 COPY constructor_standings (raceId, constructorId, points, position, wins) 
-FROM 'C:\Users\mikee\Desktop\Projects\F1-ergast-data-SQL-project\F1-Ergast-data-files\constructor_standings.csv' DELIMITER ',' CSV HEADER;
+FROM '/data/constructor_standings.csv' DELIMITER ',' CSV HEADER;
 
 COPY constructor_results (raceId, constructorId, points) 
-FROM 'C:\Users\mikee\Desktop\Projects\F1-ergast-data-SQL-project\F1-Ergast-data-files\constructor_results.csv' DELIMITER ',' CSV HEADER;
+FROM '/data/constructor_results.csv' DELIMITER ',' CSV HEADER;
 
 COPY driver_standings (raceId, driverId, points, position, wins)
-FROM 'C:\Users\mikee\Desktop\Projects\F1-ergast-data-SQL-project\F1-Ergast-data-files\driver_standings.csv' DELIMITER ',' CSV HEADER;
+FROM '/data/driver_standings.csv' DELIMITER ',' CSV HEADER;
 
 /*
 DELETION AREAS:

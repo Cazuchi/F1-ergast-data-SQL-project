@@ -1,0 +1,12 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: f1user
+      POSTGRES_PASSWORD: f1password
+      POSTGRES_DB: f1db
+    volumes:
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./F1-Ergast-data-files:/data
+    ports:
+      - "5432:5432"
