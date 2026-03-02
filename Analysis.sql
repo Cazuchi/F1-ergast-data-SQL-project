@@ -73,17 +73,20 @@ CREATE TABLE points_for_fastest_lap (
 INSERT INTO points_for_fastest_lap (fastestlaprank, bonus_points) VALUES
 (1, 1);
 
-WITH adjusted_results as (
+WITH adjusted_results AS (
     SELECT r.raceid, r.driverid, r.position, r.fastestlaprank, COALESCE(mps.modern_points, 0) AS modern_points -- Coalesce used to handle cases that return NULL. In this case when a position does NOT reward any points.
     FROM results r
     LEFT JOIN modern_points_system mps ON r.position = mps.position
 ),
-adjusted_results_with_bonus as (
+adjusted_results_with_bonus AS (
     SELECT ar.raceid, ar.driverid, ar.position, ar.fastestlaprank, ar.modern_points, COALESCE(pffl.bonus_points, 0) as bonus_points -- Coalesce used to handle cases that return NULL. In this case for fastest lap time that don't reward points (only the #1 fastest lap per race gets awarded +1 points).
     FROM adjusted_results ar
     LEFT JOIN points_for_fastest_lap pffl ON ar.fastestlaprank = pffl.fastestlaprank
 ),
-Career_points_table as (
+max_year AS (
+    SELECT MAX(raceyear) as max_year FROM races
+),
+Career_points_table AS (
     SELECT
         d.driverref AS "Driver name",
         SUM(arwb.modern_points) + sum(arwb.bonus_points) AS "Career points",
@@ -93,13 +96,14 @@ Career_points_table as (
         MAX(rc.raceyear) AS "Latest season",
         COUNT(DISTINCT rc.raceyear) AS "Years active in racing",
         ROUND((SUM(arwb.modern_points) + sum(arwb.bonus_points))::NUMERIC / COUNT(DISTINCT rc.raceyear), 2) AS "Avg. points per year active in racing",
-        2024 - MAX(rc.raceyear) AS "Years since last active in a race", -- HARDCODED at 2024 because the data stop at 2024, so a comparison with 2024 is required for accuracy.
+        max_year.max_year - MAX(rc.raceyear) AS "Years since last active in a race",
         SUM(CASE WHEN arwb.position IS NULL THEN 1 ELSE 0 END) AS "Races with NULL finish",
         ROUND(SUM(CASE WHEN arwb.position IS NULL THEN 1 ELSE 0 END)::NUMERIC / COUNT(DISTINCT arwb.raceid) * 100, 2) AS "Percentage of races with NULL placement"
     FROM adjusted_results_with_bonus arwb
     INNER JOIN drivers d ON arwb.driverid = d.driverid
     INNER JOIN races rc ON arwb.raceid = rc.raceid
-    GROUP BY d.driverref
+    CROSS JOIN max_year
+    GROUP BY d.driverref, max_year.max_year
     HAVING (SUM(arwb.modern_points) + sum(arwb.bonus_points)) >= 1000
 )
 
