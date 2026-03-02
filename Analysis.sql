@@ -55,7 +55,7 @@ which are most easily seen by sorting the table in different ways. Here are the 
     double digit average points per race drivers fairly well, with Hamilton and Verstappen being the current double digit drivers, and Senna, Prost & Stewart being double digit drivers from 30-50 years ago.
 */
 
-DROP TABLE IF EXISTS modern_points_system
+DROP TABLE IF EXISTS modern_points_system;
 CREATE TABLE modern_points_system (
     position INT,
     modern_points INT
@@ -64,7 +64,7 @@ CREATE TABLE modern_points_system (
 INSERT INTO modern_points_system (position, modern_points) VALUES
 (1, 25),(2, 18),(3, 15),(4, 12),(5, 10),(6, 8),(7, 6),(8, 4),(9, 2),(10, 1);
 
-DROP TABLE IF EXISTS points_for_fastest_lap
+DROP TABLE IF EXISTS points_for_fastest_lap;
 CREATE TABLE points_for_fastest_lap (
     fastestlaprank INT,
     bonus_points INT
@@ -88,11 +88,11 @@ Career_points_table as (
         d.driverref AS "Driver name",
         SUM(arwb.modern_points) + sum(arwb.bonus_points) AS "Career points",
         COUNT(DISTINCT arwb.raceid) AS "Races entered",
-        (SUM(arwb.modern_points) + sum(arwb.bonus_points)) / COUNT(DISTINCT arwb.raceid) AS "Avg. points per race",
+        ROUND((SUM(arwb.modern_points) + sum(arwb.bonus_points))::NUMERIC / COUNT(DISTINCT arwb.raceid), 2) AS "Avg. points per race",
         MIN(rc.raceyear) AS "First season",
         MAX(rc.raceyear) AS "Latest season",
-        MAX(rc.raceyear) - MIN(rc.raceyear) + 1 AS "Years active in racing",
-        (SUM(arwb.modern_points) + sum(arwb.bonus_points)) / (MAX(rc.raceyear) - MIN(rc.raceyear)) AS "Avg. points per year active in racing",
+        COUNT(DISTINCT rc.raceyear) AS "Years active in racing",
+        ROUND((SUM(arwb.modern_points) + sum(arwb.bonus_points))::NUMERIC / COUNT(DISTINCT rc.raceyear), 2) AS "Avg. points per year active in racing",
         2024 - MAX(rc.raceyear) AS "Years since last active in a race", -- HARDCODED at 2024 because the data stop at 2024, so a comparison with 2024 is required for accuracy.
         SUM(CASE WHEN arwb.position IS NULL THEN 1 ELSE 0 END) AS "Races with NULL finish",
         ROUND(SUM(CASE WHEN arwb.position IS NULL THEN 1 ELSE 0 END)::NUMERIC / COUNT(DISTINCT arwb.raceid) * 100, 2) AS "Percentage of races with NULL placement"
