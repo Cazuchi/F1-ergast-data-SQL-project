@@ -117,8 +117,19 @@ Final_output_table AS (
         cpt."Races entered",
         cpt."Races per year",
         cpt."Avg. points per race",
-        CONCAT('[', GREATEST(0.00, ROUND(cpt."Avg. points per race" - cpt."STDDEV", 2)), ' - ', LEAST(25, ROUND(cpt."Avg. points per race" + cpt."STDDEV", 2)), ']') AS "1 standard deviation for scored points",
-        CONCAT('[', GREATEST(0.00, ROUND(cpt."Avg. points per race" - 2 * cpt."STDDEV", 2)), ' - ', LEAST(25, ROUND(cpt."Avg. points per race" + 2 * cpt."STDDEV", 2)), ']') AS "2 standard deviation for scored points",
+        CONCAT(
+            '[', 
+            GREATEST(0.00, ROUND(cpt."Avg. points per race" - cpt."STDDEV", 2)), 
+            ' - ', LEAST(25, ROUND(cpt."Avg. points per race" + cpt."STDDEV", 2)), 
+            ']'
+        ) AS "1 standard deviation for scored points",
+        CONCAT(
+            '[', 
+            GREATEST(0.00, ROUND(cpt."Avg. points per race" - 2 * cpt."STDDEV", 2)), 
+            ' - ', 
+            LEAST(25, ROUND(cpt."Avg. points per race" + 2 * cpt."STDDEV", 2)), 
+            ']'
+        ) AS "2 standard deviation for scored points",
         cpt."First season",
         cpt."Latest season",
         cpt."Years active in racing",
