@@ -120,7 +120,8 @@ Final_output_table AS (
         CONCAT(
             '[', 
             GREATEST(0.00, ROUND(cpt."Avg. points per race" - cpt."STDDEV", 2)), 
-            ' - ', LEAST(25, ROUND(cpt."Avg. points per race" + cpt."STDDEV", 2)), 
+            ' - ', 
+            LEAST(25, ROUND(cpt."Avg. points per race" + cpt."STDDEV", 2)), 
             ']'
         ) AS "1 standard deviation for scored points",
         CONCAT(
