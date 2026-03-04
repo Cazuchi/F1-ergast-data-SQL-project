@@ -3,6 +3,25 @@ This script is my analytical findings from looking through the dataset and seein
 with the query was and why I think that the result of the query is interesting.
 */
 
+-- THESE ARE JUST SET-UP TABLES NEEDED FOR MULTIPLE OF THE QUERIES BELOW. RUN THESE FIRST BEFORE RUNNING ANY OF THE OTHER QUERIES :)
+DROP TABLE IF EXISTS modern_points_system;
+CREATE TABLE modern_points_system (
+    position INT,
+    modern_points INT
+);
+
+INSERT INTO modern_points_system (position, modern_points) VALUES
+(1, 25),(2, 18),(3, 15),(4, 12),(5, 10),(6, 8),(7, 6),(8, 4),(9, 2),(10, 1);
+
+DROP TABLE IF EXISTS points_for_fastest_lap;
+CREATE TABLE points_for_fastest_lap (
+    fastestlaprank INT,
+    bonus_points INT
+);
+
+INSERT INTO points_for_fastest_lap (fastestlaprank, bonus_points) VALUES
+(1, 1);
+
 /*
 POINTS PER YEAR AND POINTS PER RACE ADJUSTED FOR CHANGES IN POINT SCORING METHODOLOGY OVER TIME
 This first finding is about which of the F1 drivers have scored the most points over their career. Specifically measured as points per year and points per race, to adjust for some drivers having longer careers
@@ -56,24 +75,6 @@ which are most easily seen by sorting the table in different ways. Here are the 
     per race out of all of them. The double digit average points per race drivers seem to be fairly spread out over time tho. Sorting by number of years since the drivers' last race participations spread out the
     double digit average points per race drivers fairly well, with Hamilton and Verstappen being the current double digit drivers, and Senna, Prost & Stewart being double digit drivers from 30-50 years ago.
 */
-
-DROP TABLE IF EXISTS modern_points_system;
-CREATE TABLE modern_points_system (
-    position INT,
-    modern_points INT
-);
-
-INSERT INTO modern_points_system (position, modern_points) VALUES
-(1, 25),(2, 18),(3, 15),(4, 12),(5, 10),(6, 8),(7, 6),(8, 4),(9, 2),(10, 1);
-
-DROP TABLE IF EXISTS points_for_fastest_lap;
-CREATE TABLE points_for_fastest_lap (
-    fastestlaprank INT,
-    bonus_points INT
-);
-
-INSERT INTO points_for_fastest_lap (fastestlaprank, bonus_points) VALUES
-(1, 1);
 
 WITH adjusted_results AS (
     SELECT r.raceid, r.driverid, r.position, r.fastestlaprank, COALESCE(mps.modern_points, 0) AS modern_points -- Coalesce used to handle cases that return NULL. In this case when a position does NOT reward any points.
@@ -137,15 +138,35 @@ Final_output_table AS (
         cpt."Avg. points per year active in racing",
         cpt."Years since last active in a race",
         cpt."Races with NULL finish",
-        cpt."Percentage of races with NULL placement"
+        cpt."Percentage of races with NULL placement",
+        1 AS "Sort by order"
     FROM Career_points_table cpt
 )
 
-SELECT * FROM Final_output_table ORDER BY "Career points" DESC
--- SELECT * FROM Final_output_table ORDER BY "Avg. points per year active in racing" DESC, "Avg. points per race" DESC
--- SELECT * From Final_output_table ORDER BY "Avg. points per year active in racing" DESC, "Races with NULL finish" DESC
--- SELECT * From Final_output_table ORDER BY "Percentage of races with NULL placement" ASC
--- SELECT * FROM Final_output_table ORDER BY "Latest season" DESC, "Avg. points per race" DESC
+SELECT * FROM Final_output_table
+UNION ALL
+SELECT
+    'Subtotals row (averages)',
+    ROUND(AVG("Career points"), 0),
+    ROUND(AVG("Races entered"), 0),
+    ROUND(AVG("Races per year"), 2),
+    ROUND(AVG("Avg. points per race"), 2),
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    ROUND(AVG("Years active in racing"), 0),
+    ROUND(AVG("Avg. points per year active in racing"), 2),
+    ROUND(AVG("Years since last active in a race"), 0),
+    ROUND(AVG("Races with NULL finish"), 0),
+    ROUND(AVG("Percentage of races with NULL placement"), 2),
+    2
+FROM Final_output_table
+ORDER BY "Sort by order" ASC, "Career points" DESC
+-- ORDER BY "Sort by order" ASC, "Avg. points per year active in racing" DESC, "Avg. points per race" DESC
+-- ORDER BY "Sort by order" ASC, "Avg. points per year active in racing" DESC, "Races with NULL finish" DESC
+-- ORDER BY "Sort by order" ASC, "Percentage of races with NULL placement" ASC
+-- ORDER BY "Sort by order" ASC, "Latest season" DESC, "Avg. points per race" DESC
 
 /*
 PLACEHOLDER TABLE OVERVIEW
