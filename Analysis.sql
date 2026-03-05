@@ -186,6 +186,76 @@ TABLE SHOWING TEAM'S STRATEGIC CHOICES IN TEAMS OF PAIRING DRIVERS OF DIFFERENT 
 paired drivers?
 */
 
+WITH adjusted_results AS (
+    SELECT r.raceid, r.driverid, r.constructorid, r.position, r.fastestlaprank, COALESCE(mps.modern_points, 0) AS modern_points -- Coalesce used to handle cases that return NULL. In this case when a position does NOT reward any points.
+    FROM results r
+    LEFT JOIN modern_points_system mps ON r.position = mps.position
+),
+adjusted_results_with_bonus AS (
+    SELECT 
+        d.driverref AS "Driver name",
+        c.constructorname AS "Team name",
+        ar.raceid AS "Race ID", 
+        ar.driverid AS "Driver ID", 
+        ar.position AS "Position", 
+        ar.fastestlaprank, 
+        ar.modern_points, 
+        COALESCE(pffl.bonus_points, 0) AS bonus_points -- Coalesce used to handle cases that return NULL. In this case for fastest lap time that don't reward points (only the #1 fastest lap per race gets awarded +1 points).
+    FROM adjusted_results ar
+    LEFT JOIN points_for_fastest_lap pffl ON ar.fastestlaprank = pffl.fastestlaprank
+    INNER JOIN drivers d ON ar.driverid = d.driverid
+    INNER JOIN constructors c on ar.constructorid = c.constructorid
+),
+base_table AS (
+    SELECT
+        "Team name",
+        "Driver name",
+        "Race ID",
+        arwb.modern_points + arwb.bonus_points AS "Points"
+    FROM adjusted_results_with_bonus arwb
+),
+pairs_table AS (
+    SELECT
+        b1."Team name" AS "Team name",
+        b1."Driver name" AS "Driver #1 name",
+        b1."Points" AS "Driver #1 points",
+        ROUND(STDDEV(b1."Points") OVER (PARTITION BY b1."Driver name" ORDER BY b1."Race ID" ASC), 2) AS "Driver #1 rolling STDDEV",
+        b2."Driver name" AS "Driver #2 name",
+        b2."Points" AS "Driver #2 points",
+        ROUND(STDDEV(b2."Points") OVER (PARTITION BY b2."Driver name" ORDER BY b1."Race ID" ASC), 2) AS "Driver #2 rolling STDDEV",
+        b1."Race ID" AS "Race ID",
+        COUNT(*) OVER (PARTITION BY b1."Team name", b1."Driver name", b2."Driver name") AS "Team/Drivers combo race counter"
+    FROM base_table b1
+    INNER JOIN base_table b2
+        ON b1."Team name" = b2."Team name"
+        AND b1."Race ID" = b2."Race ID"
+        AND b1."Driver name" < b2."Driver name"
+),
+final_output_table AS (
+    SELECT
+        pt."Team name",
+        pt."Driver #1 name",
+        pt."Driver #1 points",
+        pt."Driver #1 rolling STDDEV",
+        pt."Driver #2 name",
+        pt."Driver #2 points",
+        pt."Driver #2 rolling STDDEV",
+        pt."Race ID",
+        pt."Team/Drivers combo race counter"
+    FROM pairs_table pt
+    WHERE "Team/Drivers combo race counter" >= 10
+)
+
+SELECT * FROM final_output_table ORDER BY "Team name" ASC, "Race ID" ASC;
+
+SELECT * 
+FROM pairs_table 
+WHERE "Driver #1 name" = 'barbazza'
+ORDER BY "Race ID";
+
+SELECT * FROM constructors;
+
+
 /*
 PLACEHOLDER TABLE OVERVIEW
 */
