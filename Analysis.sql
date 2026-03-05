@@ -222,7 +222,7 @@ pairs_table AS (
         ROUND(STDDEV(b1."Points") OVER (PARTITION BY b1."Driver name" ORDER BY b1."Race ID" ASC), 2) AS "Driver #1 rolling STDDEV",
         b2."Driver name" AS "Driver #2 name",
         b2."Points" AS "Driver #2 points",
-        ROUND(STDDEV(b2."Points") OVER (PARTITION BY b2."Driver name" ORDER BY b1."Race ID" ASC), 2) AS "Driver #2 rolling STDDEV",
+        ROUND(STDDEV(b2."Points") OVER (PARTITION BY b2."Driver name" ORDER BY b2."Race ID" ASC), 2) AS "Driver #2 rolling STDDEV",
         b1."Race ID" AS "Race ID",
         COUNT(*) OVER (PARTITION BY b1."Team name", b1."Driver name", b2."Driver name") AS "Team/Drivers combo race counter"
     FROM base_table b1
@@ -253,7 +253,7 @@ FROM pairs_table
 WHERE "Driver #1 name" = 'barbazza'
 ORDER BY "Race ID";
 
-SELECT * FROM constructors;
+SELECT * FROM results;
 
 
 /*
