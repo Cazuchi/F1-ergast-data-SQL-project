@@ -151,7 +151,7 @@ CREATE TABLE lap_times_staging_table (
     driverId INT,
     lap INT,
     position INT,
-    "time" INTERVAL,
+    "time" VARCHAR(255),
     milliseconds INT
 );
 
@@ -163,8 +163,8 @@ CREATE TABLE pit_stops_staging_table (
     driverId INT,
     "stop" INT,
     lap INT,
-    "time" INTERVAL,
-    duration INTERVAL,
+    "time" VARCHAR(255),
+    duration VARCHAR(255),
     milliseconds INT
 );
 
@@ -212,7 +212,7 @@ CREATE TABLE races (
     raceId INT PRIMARY KEY,
     raceYear INT,
     circuitId INT REFERENCES circuits(circuitId),
-    raceStart INTERVAL
+    raceStart VARCHAR(255),
 );
 
 INSERT INTO races (raceId, raceYear, circuitId, raceStart)
@@ -229,11 +229,11 @@ CREATE TABLE results (
     position INT, 
     points INT, 
     laps INT, 
-    totalRaceTime INTERVAL,
+    totalRaceTime VARCHAR(255),
     milliseconds INT, 
     fastestLap INT,
     fastestLapRank INT, 
-    fastestLapTime INTERVAL,
+    fastestLapTime VARCHAR(255),
     fastestLapSpeed NUMERIC, 
     statusId INT REFERENCES race_statuscodes(statusId)
 );
@@ -277,7 +277,7 @@ CREATE TABLE lap_times (
     driverId INT REFERENCES drivers(driverId),
     lap INT,
     position INT,
-    lap_time INTERVAL,
+    lap_time VARCHAR(255),
     milliseconds INT
 );
 
@@ -289,8 +289,8 @@ CREATE TABLE pit_stops (
     driverId INT REFERENCES drivers(driverId),
     stopNumber INT,
     lap INT,
-    pitStopTime INTERVAL,
-    duration INTERVAL,
+    pitStopTime VARCHAR(255),
+    duration VARCHAR(255),
     milliseconds INT
 );
 
