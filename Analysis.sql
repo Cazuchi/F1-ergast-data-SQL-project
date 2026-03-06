@@ -208,9 +208,9 @@ adjusted_results_with_bonus AS (
 ),
 base_table AS (
     SELECT
-        "Team name",
-        "Driver name",
-        "Race ID",
+        arwb."Team name",
+        arwb."Driver name",
+        arwb."Race ID",
         arwb.modern_points + arwb.bonus_points AS "Points"
     FROM adjusted_results_with_bonus arwb
 ),
