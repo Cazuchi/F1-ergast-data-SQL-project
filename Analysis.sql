@@ -224,14 +224,15 @@ pairs_table AS (
         b2."Points" AS "Driver #2 points",
         ROUND(STDDEV(b2."Points") OVER (PARTITION BY b2."Driver name" ORDER BY b2."Race ID" ASC), 2) AS "Driver #2 rolling STDDEV",
         b1."Race ID" AS "Race ID",
-        COUNT(*) OVER (PARTITION BY b1."Team name", b1."Driver name", b2."Driver name") AS "Team/Drivers combo race counter"
+        DENSE_RANK() OVER (ORDER BY b1."Race ID" ASC) AS "G&L main index",
+        DENSE_RANK() OVER (PARTITION BY b1."Team name", b1."Driver name", b2."Driver name" ORDER BY b1."Race ID" ASC) AS "G&L specific index"
     FROM base_table b1
     INNER JOIN base_table b2
         ON b1."Team name" = b2."Team name"
         AND b1."Race ID" = b2."Race ID"
         AND b1."Driver name" < b2."Driver name"
 ),
-final_output_table AS (
+Gaps_and_islands_table AS (
     SELECT
         pt."Team name",
         pt."Driver #1 name",
@@ -241,16 +242,67 @@ final_output_table AS (
         pt."Driver #2 points",
         pt."Driver #2 rolling STDDEV",
         pt."Race ID",
-        pt."Team/Drivers combo race counter"
+        pt."G&L main index",
+        pt."G&L specific index",
+        pt."G&L main index" - pt."G&L specific index" AS "G&L distance measure"
     FROM pairs_table pt
-    WHERE "Team/Drivers combo race counter" >= 10
+),
+final_output_table AS (
+    SELECT
+        git."Team name",
+        git."Driver #1 name",
+        git."Driver #1 points",
+        git."Driver #1 rolling STDDEV",
+        git."Driver #2 name",
+        git."Driver #2 points",
+        git."Driver #2 rolling STDDEV",
+        git."Race ID",
+        git."G&L distance measure",
+        COUNT(*) OVER (PARTITION BY git."Team name", git."Driver #1 name", git."Driver #2 name", git."G&L distance measure") AS "Team/Drivers combo race counter"
+    FROM Gaps_and_islands_table git
+),
+final_output_table_filtered AS (
+    SELECT
+        fot."Team name",
+        fot."Driver #1 name",
+        fot."Driver #1 points",
+        fot."Driver #1 rolling STDDEV",
+        CASE WHEN FIRST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1 IS NULL
+        THEN LAST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1 - NTH_VALUE(fot."Driver #1 rolling STDDEV", 2) OVER stint_window_driver_1
+        ELSE LAST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1 - FIRST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1
+        END AS "Driver #1 stint volatility trend",
+        REGR_SLOPE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1 AS "Driver #1 stint volatility slope",
+        fot."Driver #2 name",
+        fot."Driver #2 points",
+        fot."Driver #2 rolling STDDEV",
+        CASE WHEN FIRST_VALUE(fot."Driver #2 rolling STDDEV") OVER stint_window_driver_2 IS NULL
+        THEN LAST_VALUE(fot."Driver #2 rolling STDDEV") OVER stint_window_driver_2 - NTH_VALUE(fot."Driver #2 rolling STDDEV", 2) OVER stint_window_driver_2
+        ELSE LAST_VALUE(fot."Driver #2 rolling STDDEV") OVER stint_window_driver_2 - FIRST_VALUE(fot."Driver #2 rolling STDDEV") OVER stint_window_driver_2
+        END AS "Driver #2 stint volatility trend",
+        ABS(fot."Driver #1 rolling STDDEV" - fot."Driver #2 rolling STDDEV") AS "ABS difference between driver STDDEVs",
+        fot."Race ID",
+        fot."G&L distance measure",
+        fot."Team/Drivers combo race counter"
+    FROM final_output_table fot
+    WHERE fot."Team/Drivers combo race counter" >= 10
+    WINDOW 
+        stint_window_driver_1 AS (
+            PARTITION BY fot."Driver #1 name", fot."G&L distance measure"
+            ORDER BY fot."Race ID" ASC
+            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+        ),
+        stint_window_driver_2 AS (
+            PARTITION BY fot."Driver #2 name", fot."G&L distance measure"
+            ORDER BY fot."Race ID" ASC
+            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+        )
 )
 
-SELECT * FROM final_output_table ORDER BY "Team name" ASC, "Race ID" ASC;
+SELECT * FROM final_output_table_filtered ORDER BY "Team name" ASC, "Race ID" ASC;
 
 SELECT * 
-FROM pairs_table 
-WHERE "Driver #1 name" = 'barbazza'
+FROM final_output_table_filtered
+WHERE "Driver #1 name" = 'barbazza' AND "Driver #2 name" = 'barbazza'
 ORDER BY "Race ID";
 
 SELECT * FROM results;
