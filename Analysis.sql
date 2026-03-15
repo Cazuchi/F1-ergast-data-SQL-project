@@ -271,7 +271,6 @@ final_output_table_filtered AS (
         THEN LAST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1 - NTH_VALUE(fot."Driver #1 rolling STDDEV", 2) OVER stint_window_driver_1
         ELSE LAST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1 - FIRST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1
         END AS "Driver #1 stint volatility trend",
-        REGR_SLOPE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1 AS "Driver #1 stint volatility slope",
         fot."Driver #2 name",
         fot."Driver #2 points",
         fot."Driver #2 rolling STDDEV",
