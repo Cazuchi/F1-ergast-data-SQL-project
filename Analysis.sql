@@ -297,17 +297,23 @@ final_output_table_filtered AS (
             ORDER BY fot."Race ID" ASC
             ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
         )
+),
+grouped_results AS (
+    SELECT
+        fotf."Year",
+        fotf."Team name",
+        fotf."Driver #1 name",
+        ROUND(ABS(AVG(fotf."Driver #1 stint volatility trend")), 2) AS "ABS driver #1 stint volatility trend",
+        fotf."Driver #2 name",
+        ROUND(ABS(AVG(fotf."Driver #2 stint volatility trend")), 2) AS "ABS driver #2 stint volatility trend",
+        AVG(fotf."Team/Drivers combo race counter")::INTEGER AS "Team/Drivers combo race counter"
+    FROM final_output_table_filtered fotf
+    GROUP BY fotf."Year", fotf."Driver #1 name", fotf."Driver #2 name", fotf."Team name"
 )
 
-SELECT * FROM final_output_table_filtered ORDER BY "Team name" ASC, "Race ID" ASC;
-
-SELECT * 
-FROM final_output_table_filtered
-WHERE "Driver #1 name" = 'barbazza' AND "Driver #2 name" = 'barbazza'
-ORDER BY "Race ID";
-
-SELECT * FROM races;
-
+--SELECT * FROM final_output_table_filtered ORDER BY "Team name" ASC, "Race ID" ASC;
+--SELECT * FROM grouped_results ORDER BY "ABS driver #1 stint volatility trend" ASC, "ABS driver #2 stint volatility trend" ASC;
+SELECT * FROM final_output_table_filtered WHERE "Driver #1 name" = 'ambrosio' AND "Team name" = 'Virgin';
 
 /*
 PLACEHOLDER TABLE OVERVIEW
