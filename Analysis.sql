@@ -232,6 +232,16 @@ pairs_table AS (
         AND b1."Race ID" = b2."Race ID"
         AND b1."Driver name" < b2."Driver name"
 ),
+percentile_metrics AS (
+    SELECT
+        GREATEST(MAX(ABS(pt."Driver #1 rolling STDDEV")), MAX(ABS(pt."Driver #2 rolling STDDEV"))) AS "Rolling STDDEV max value",
+        LEAST(MIN(ABS(pt."Driver #1 rolling STDDEV")), MIN(ABS(pt."Driver #2 rolling STDDEV"))) AS "Rolling STDDEV min value",
+        GREATEST(MAX(ABS(pt."Driver #1 rolling STDDEV")), MAX(ABS(pt."Driver #2 rolling STDDEV")))
+        -
+        LEAST(MIN(ABS(pt."Driver #1 rolling STDDEV")))
+        AS "Rolling STDDEV width"
+    FROM pairs_table pt
+),
 Gaps_and_islands_table AS (
     SELECT
         pt."Team name",
@@ -241,11 +251,15 @@ Gaps_and_islands_table AS (
         pt."Driver #2 name",
         pt."Driver #2 points",
         pt."Driver #2 rolling STDDEV",
+        pm."Rolling STDDEV max value" AS "Rolling STDDEV max value",
+        pm."Rolling STDDEV min value" AS "Rolling STDDEV min value",
+        pm."Rolling STDDEV width" AS "Rolling STDDEV width",
         pt."Race ID",
         pt."G&L main index",
         pt."G&L specific index",
         pt."G&L main index" - pt."G&L specific index" AS "G&L distance measure"
     FROM pairs_table pt
+    CROSS JOIN percentile_metrics pm
 ),
 final_output_table AS (
     SELECT
@@ -256,6 +270,8 @@ final_output_table AS (
         git."Driver #2 name",
         git."Driver #2 points",
         git."Driver #2 rolling STDDEV",
+        git."Rolling STDDEV width" * 0.33 + git."Rolling STDDEV min value" AS "33th percentile",
+        git."Rolling STDDEV width" * 0.66 + git."Rolling STDDEV min value" AS "66th percentile",
         git."Race ID",
         git."G&L distance measure",
         COUNT(*) OVER (PARTITION BY git."Team name", git."Driver #1 name", git."Driver #2 name", git."G&L distance measure") AS "Team/Drivers combo race counter"
@@ -271,6 +287,11 @@ final_output_table_filtered AS (
         THEN LAST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1 - NTH_VALUE(fot."Driver #1 rolling STDDEV", 2) OVER stint_window_driver_1
         ELSE LAST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1 - FIRST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1
         END AS "Driver #1 stint volatility trend",
+        CASE 
+        WHEN fot."Driver #1 rolling STDDEV" <= fot."33th percentile" THEN 'Low volatility'
+        WHEN fot."Driver #1 rolling STDDEV" <= fot."66th percentile" THEN 'Medium volatility'
+        ELSE 'High volatility'
+        END AS "Driver #1 volatility class",
         fot."Driver #2 name",
         fot."Driver #2 points",
         fot."Driver #2 rolling STDDEV",
@@ -278,6 +299,11 @@ final_output_table_filtered AS (
         THEN LAST_VALUE(fot."Driver #2 rolling STDDEV") OVER stint_window_driver_2 - NTH_VALUE(fot."Driver #2 rolling STDDEV", 2) OVER stint_window_driver_2
         ELSE LAST_VALUE(fot."Driver #2 rolling STDDEV") OVER stint_window_driver_2 - FIRST_VALUE(fot."Driver #2 rolling STDDEV") OVER stint_window_driver_2
         END AS "Driver #2 stint volatility trend",
+        CASE 
+        WHEN fot."Driver #2 rolling STDDEV" <= fot."33th percentile" THEN 'Low volatility'
+        WHEN fot."Driver #2 rolling STDDEV" <= fot."66th percentile" THEN 'Medium volatility'
+        ELSE 'High volatility'
+        END AS "Driver #2 volatility class",
         ABS(fot."Driver #1 rolling STDDEV" - fot."Driver #2 rolling STDDEV") AS "ABS difference between driver STDDEVs",
         fot."Race ID",
         rc.raceyear as "Year",
@@ -298,22 +324,57 @@ final_output_table_filtered AS (
             ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
         )
 ),
-grouped_results AS (
+team_strategy_classification AS (
     SELECT
-        fotf."Year",
         fotf."Team name",
+        CASE
+        WHEN fotf."Driver #1 rolling STDDEV" < fotf."Driver #2 rolling STDDEV"
+        THEN CONCAT(
+            fotf."Driver #1 volatility class",
+            ' / ',
+            fotf."Driver #2 volatility class",
+            ' driver pair'
+        ) 
+        ELSE CONCAT(
+            fotf."Driver #2 volatility class",
+            ' / ',
+            fotf."Driver #1 volatility class",
+            ' driver pair'
+        ) 
+        END AS "Team driver pairing strategy",
         fotf."Driver #1 name",
-        ROUND(ABS(AVG(fotf."Driver #1 stint volatility trend")), 2) AS "ABS driver #1 stint volatility trend",
+        fotf."Driver #1 points",
+        fotf."Driver #1 rolling STDDEV",
+        fotf."Driver #1 stint volatility trend",
+        fotf."Driver #1 volatility class",
         fotf."Driver #2 name",
-        ROUND(ABS(AVG(fotf."Driver #2 stint volatility trend")), 2) AS "ABS driver #2 stint volatility trend",
-        AVG(fotf."Team/Drivers combo race counter")::INTEGER AS "Team/Drivers combo race counter"
+        fotf."Driver #2 points",
+        fotf."Driver #2 rolling STDDEV",
+        fotf."Driver #2 stint volatility trend",
+        fotf."Driver #2 volatility class",
+        fotf."ABS difference between driver STDDEVs",
+        fotf."Race ID",
+        fotf."Year",
+        fotf."G&L distance measure",
+        fotf."Team/Drivers combo race counter"
     FROM final_output_table_filtered fotf
-    GROUP BY fotf."Year", fotf."Driver #1 name", fotf."Driver #2 name", fotf."Team name"
+),
+grouped_results_for_stints AS (
+    SELECT
+        tsc."Year",
+        tsc."Team name",
+        tsc."Driver #1 name",
+        ROUND(ABS(AVG(tsc."Driver #1 stint volatility trend")), 2) AS "ABS driver #1 stint volatility trend",
+        tsc."Driver #2 name",
+        ROUND(ABS(AVG(tsc."Driver #2 stint volatility trend")), 2) AS "ABS driver #2 stint volatility trend",
+        AVG(tsc."Team/Drivers combo race counter")::INTEGER AS "Team/Drivers combo race counter"
+    FROM team_strategy_classification tsc
+    GROUP BY tsc."Year", tsc."Driver #1 name", tsc."Driver #2 name", tsc."Team name"
 )
 
---SELECT * FROM final_output_table_filtered ORDER BY "Team name" ASC, "Race ID" ASC;
---SELECT * FROM grouped_results ORDER BY "ABS driver #1 stint volatility trend" ASC, "ABS driver #2 stint volatility trend" ASC;
-SELECT * FROM final_output_table_filtered WHERE "Driver #1 name" = 'ambrosio' AND "Team name" = 'Virgin';
+SELECT * FROM team_strategy_classification ORDER BY "Team name" ASC, "Race ID" ASC;
+--SELECT * FROM grouped_results_for_stints ORDER BY "ABS driver #1 stint volatility trend" ASC, "ABS driver #2 stint volatility trend" ASC;
+--SELECT * FROM final_output_table_filtered WHERE "Driver #1 name" = 'ambrosio' AND "Team name" = 'Virgin';
 
 /*
 PLACEHOLDER TABLE OVERVIEW
