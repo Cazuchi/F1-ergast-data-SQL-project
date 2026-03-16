@@ -141,7 +141,7 @@ Final_output_table AS (
             LEAST(25, ROUND(cpt."Avg. points per race" + 2 * cpt."STDDEV", 2)), 
             ']'
         ) AS "2 standard deviation for scored points",
-        
+
         cpt."First season",
         cpt."Latest season",
         cpt."Years active in racing",
@@ -287,7 +287,8 @@ final_output_table_filtered AS (
         fot."Driver #1 points",
         fot."Driver #1 rolling STDDEV",
 
-        CASE WHEN FIRST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1 IS NULL
+        CASE 
+        WHEN FIRST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1 IS NULL
         THEN LAST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1 - NTH_VALUE(fot."Driver #1 rolling STDDEV", 2) OVER stint_window_driver_1
         ELSE LAST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1 - FIRST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1
         END AS "Driver #1 stint volatility trend",
@@ -302,7 +303,8 @@ final_output_table_filtered AS (
         fot."Driver #2 points",
         fot."Driver #2 rolling STDDEV",
 
-        CASE WHEN FIRST_VALUE(fot."Driver #2 rolling STDDEV") OVER stint_window_driver_2 IS NULL
+        CASE 
+        WHEN FIRST_VALUE(fot."Driver #2 rolling STDDEV") OVER stint_window_driver_2 IS NULL
         THEN LAST_VALUE(fot."Driver #2 rolling STDDEV") OVER stint_window_driver_2 - NTH_VALUE(fot."Driver #2 rolling STDDEV", 2) OVER stint_window_driver_2
         ELSE LAST_VALUE(fot."Driver #2 rolling STDDEV") OVER stint_window_driver_2 - FIRST_VALUE(fot."Driver #2 rolling STDDEV") OVER stint_window_driver_2
         END AS "Driver #2 stint volatility trend",
