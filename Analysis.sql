@@ -125,6 +125,7 @@ Final_output_table AS (
         cpt."Races per year",
         cpt."Avg. points per race",
         ROUND(cpt."STDDEV", 2) AS "Standard deviation (~volatility)",
+
         CONCAT(
             '[', 
             GREATEST(0.00, ROUND(cpt."Avg. points per race" - cpt."STDDEV", 2)), 
@@ -132,6 +133,7 @@ Final_output_table AS (
             LEAST(25, ROUND(cpt."Avg. points per race" + cpt."STDDEV", 2)), 
             ']'
         ) AS "1 standard deviation for scored points",
+
         CONCAT(
             '[', 
             GREATEST(0.00, ROUND(cpt."Avg. points per race" - 2 * cpt."STDDEV", 2)), 
@@ -139,6 +141,7 @@ Final_output_table AS (
             LEAST(25, ROUND(cpt."Avg. points per race" + 2 * cpt."STDDEV", 2)), 
             ']'
         ) AS "2 standard deviation for scored points",
+        
         cpt."First season",
         cpt."Latest season",
         cpt."Years active in racing",
@@ -283,27 +286,33 @@ final_output_table_filtered AS (
         fot."Driver #1 name",
         fot."Driver #1 points",
         fot."Driver #1 rolling STDDEV",
+
         CASE WHEN FIRST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1 IS NULL
         THEN LAST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1 - NTH_VALUE(fot."Driver #1 rolling STDDEV", 2) OVER stint_window_driver_1
         ELSE LAST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1 - FIRST_VALUE(fot."Driver #1 rolling STDDEV") OVER stint_window_driver_1
         END AS "Driver #1 stint volatility trend",
+
         CASE 
         WHEN fot."Driver #1 rolling STDDEV" <= fot."33th percentile" THEN 'Low volatility'
         WHEN fot."Driver #1 rolling STDDEV" <= fot."66th percentile" THEN 'Medium volatility'
         ELSE 'High volatility'
         END AS "Driver #1 volatility class",
+
         fot."Driver #2 name",
         fot."Driver #2 points",
         fot."Driver #2 rolling STDDEV",
+
         CASE WHEN FIRST_VALUE(fot."Driver #2 rolling STDDEV") OVER stint_window_driver_2 IS NULL
         THEN LAST_VALUE(fot."Driver #2 rolling STDDEV") OVER stint_window_driver_2 - NTH_VALUE(fot."Driver #2 rolling STDDEV", 2) OVER stint_window_driver_2
         ELSE LAST_VALUE(fot."Driver #2 rolling STDDEV") OVER stint_window_driver_2 - FIRST_VALUE(fot."Driver #2 rolling STDDEV") OVER stint_window_driver_2
         END AS "Driver #2 stint volatility trend",
+
         CASE 
         WHEN fot."Driver #2 rolling STDDEV" <= fot."33th percentile" THEN 'Low volatility'
         WHEN fot."Driver #2 rolling STDDEV" <= fot."66th percentile" THEN 'Medium volatility'
         ELSE 'High volatility'
         END AS "Driver #2 volatility class",
+
         ABS(fot."Driver #1 rolling STDDEV" - fot."Driver #2 rolling STDDEV") AS "ABS difference between driver STDDEVs",
         fot."Race ID",
         rc.raceyear as "Year",
@@ -327,6 +336,7 @@ final_output_table_filtered AS (
 team_strategy_classification AS (
     SELECT
         fotf."Team name",
+
         CASE
         WHEN fotf."Driver #1 rolling STDDEV" < fotf."Driver #2 rolling STDDEV"
         THEN CONCAT(
@@ -342,6 +352,7 @@ team_strategy_classification AS (
             ' driver pair'
         ) 
         END AS "Team driver pairing strategy",
+        
         fotf."Driver #1 name",
         fotf."Driver #1 points",
         fotf."Driver #1 rolling STDDEV",
