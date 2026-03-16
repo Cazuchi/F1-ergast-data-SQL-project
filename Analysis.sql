@@ -241,7 +241,7 @@ percentile_metrics AS (
         LEAST(MIN(ABS(pt."Driver #1 rolling STDDEV")), MIN(ABS(pt."Driver #2 rolling STDDEV"))) AS "Rolling STDDEV min value",
         GREATEST(MAX(ABS(pt."Driver #1 rolling STDDEV")), MAX(ABS(pt."Driver #2 rolling STDDEV")))
         -
-        LEAST(MIN(ABS(pt."Driver #1 rolling STDDEV")))
+        LEAST(MIN(ABS(pt."Driver #1 rolling STDDEV")), MIN(ABS(pt."Driver #2 rolling STDDEV")))
         AS "Rolling STDDEV width"
     FROM pairs_table pt
 ),
