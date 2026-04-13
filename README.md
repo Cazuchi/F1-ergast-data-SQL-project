@@ -21,6 +21,12 @@ Two queries with different purposes:
   islands problem, in order to be able to correctly split unique combinations of teams and drivers into stint. As a unique combination of a team and two drivers 
   can potentially be repeated later in time, with a gap in between, the gaps and islands approach allows for those two stints to be correctly identified.
 
+## Requirements 
+- VS Code for displaying the code and running the queries 
+    - The Docker / Container Tools extension for VS Code 
+    - The SQLTools & SQLTools PostgreSQL extensions for VS Code 
+- Docker
+
 ## Data Sources
 - F1 Ergast dataset from Kaggle: https://www.kaggle.com/datasets/rohanrao/formula-1-world-championship-1950-2020?resource=download
 
