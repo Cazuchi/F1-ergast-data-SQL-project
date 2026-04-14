@@ -1,10 +1,10 @@
-# Setting up a local docker database and exploring the F1 Ergast dataset using SQL
+# Setting up a local docker PostgreSQL database and exploring the F1 Ergast dataset using SQL
 This is my main repo for showcasing my SQL competency. The project is entirely self-contained and can be cloned and run as is to use both the docker SQL 
 database and the queries that I have written. I have specifically chosen a subset of the Ergast F1 dataset that I found to be the most interesting in 
 my initial inspection of the data, used SQL to define and populate the database tables and then used SQL to combine individual tables into two separate 
 output tables that each highlights different aspects of the dataset, using different SQL approaches.
 
-The queries to create the output are written in the analysis.sql files, which includes the two queries along with a few setup commands for temporary tables 
+The queries to create the output are written in the [analysis.sql](https://github.com/Cazuchi/F1-ergast-data-SQL-project/blob/main/Analysis.sql) files, which includes the two queries along with a few setup commands for temporary tables 
 and commentary explaining what my approach was for the dataset and what I found interesting about the output from each query. Each query also includes 
 multiple SELECT FROM / ORDER BY statements at the bottom, which are meant to be used one at a time, which is why all but one are commented out by default. 
 Each of those SELECT FROM / ORDER BY statements highlight an interesting finding from the rather large output tables, that would otherwise be harder to see 
