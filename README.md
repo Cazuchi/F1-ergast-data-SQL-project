@@ -4,6 +4,8 @@ database and the queries that I have written. I have specifically chosen a subse
 my initial inspection of the data, used SQL to define and populate the database tables and then used SQL to combine individual tables into two separate 
 output tables that each highlights different aspects of the dataset, using different SQL approaches.
 
+The file [schema.sql](https://github.com/Cazuchi/F1-ergast-data-SQL-project/blob/main/schema.sql) defines the tables, loads and filters the data and populates the database to prepare it for queries. 
+
 The queries to create the output are written in the [analysis.sql](https://github.com/Cazuchi/F1-ergast-data-SQL-project/blob/main/Analysis.sql) files, which includes the two queries along with a few setup commands for temporary tables 
 and commentary explaining what my approach was for the dataset and what I found interesting about the output from each query. Each query also includes 
 multiple SELECT FROM / ORDER BY statements at the bottom, which are meant to be used one at a time, which is why all but one are commented out by default. 
