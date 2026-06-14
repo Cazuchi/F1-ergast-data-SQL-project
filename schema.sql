@@ -212,7 +212,7 @@ CREATE TABLE races (
     raceId INT PRIMARY KEY,
     raceYear INT,
     circuitId INT REFERENCES circuits(circuitId),
-    raceStart VARCHAR(255),
+    raceStart VARCHAR(255)
 );
 
 INSERT INTO races (raceId, raceYear, circuitId, raceStart)

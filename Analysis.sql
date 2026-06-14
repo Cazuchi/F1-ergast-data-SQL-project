@@ -48,50 +48,55 @@ performance metrics along with combining multiple tables again and the fifth is 
 At the bottom I've included multiple order by statements, meant to be used one at a time, which is why all but one are commented out. There are multiple interesting findings in the table resulting from this query,
 which are most easily seen by sorting the table in different ways. Here are the main findings that I would like to highlight from each order by statement:
 
-    - ORDER BY "Sort by order" ASC, "Career points" DESC
-    Just a simple sort by total points scored over their career. Nothing too surprising, but interesting that drivers like Max Verstappen, Vettel and Hamilton have close to or more points, than drivers like
-    Michael Schumacher and Alonso, who have spent many more years racing than these younger drivers. Apparently there has been an increase in the number of races per year over time in F1 racing tho, so that 
-    is likely part of the explanation for the aggregated points totals between drivers from different eras. Michael Schumacher is still especially interesting tho', because the non-adjusted points aggregates places
-    him much, much further down the leaderboard, with less than 2,000 points over his career. This is simply due to the fact that the general trend in point scoring has gone up quite dramatically over time, 
-    but it's interesting non the less how much the interpretation of a driver's performance changes significantly when the points aggregates are adjusted to have even scoring methodologies over time. 
-    In this view, based on aggregate points scored and years racing, Max Verstappen, Senna, Bottas and Rosberg seem like incredibly strong performers, although only two of them seem to still be active drivers, 
-    with record from 2024.
+    - SELECT "Driver name", "Career points (legacy scoring)", "Career points (modern scoring)", "Races entered", "Years active in racing" FROM Unioned_table ORDER BY "Sort by order" ASC, "Career points (modern scoring)" DESC  
+    First, let me define the two "Career points" columns in this table. The legacy scoring column uses the point distribution model from the year that a given race was driven, while the modern scoring column uses the most  
+    recent scoring model for formula 1 races. This means that the legacy column shows how many points a driver actually earned in their career, but the modern column shows how many points they would have earned, if the  
+    scoring methodology had been consistent over the years. And the difference really shows in the totals. Looking at Michael Schumacer, for instance, based on the legacy scoring models, his total career points comes nowhere  
+    close to the other top 5 drivers sorted by modern points, but when the points per race are adjusted to use the modern scoring system, he's the 2nd best driver based on total career points. Another noteworthy thing is  
+    Max Verstappen. He's been driving for 10 years total (within the timeline of this dataset which isn't fully up-to-date) and yet he's the driver with the 5th most points, scoring close to drivers like Alonso, Vettel and  
+    Scumacher, but with 6-11 years less of driving. If he keeps up that pace, he's likely going to be the number 1 or 2 driver in terms of career points, depending on how Hamilton continues to perform.
 
-    - ORDER BY "Sort by order" ASC, "Avg. points per year active in racing" DESC, "Avg. points per race" DESC;
+    - SELECT "Driver name", "Avg. points per year active in racing", "Avg. points per race" FROM Unioned_table ORDER BY "Sort by order" ASC, "Avg. points per year active in racing" DESC, "Avg. points per race" DESC
     Sorting by average points per year and average points per race gives a more detailed view of drivers' performance. Verstappen and Hamilton outperform the other drivers by a significant amount when sorting the
     data this way. But the more interesting finding is the implications on consistency over time. Notice how the top 7 drivers in terms of points per year almost all have double digit average scores for points per
     race, with the one exception being Leclerc. Leclerc has an average of 9 points per race, which suggests to me that while he is a really strong driver, his performance in any given race is less consistent than
     most of the other top drivers. And yet he manages to get a top 5 placement, indicating that when he performs well in a race, he really, really performs well.
 
-    - ORDER BY "Sort by order" ASC, "Avg. points per year active in racing" DESC, "Races with NULL finish" DESC
+    - SELECT "Driver name", "Avg. points per year active in racing", "Avg. points per race", "Years active in racing", "Races per year", "Percentage of races with NULL placement" FROM Unioned_table ORDER BY "Sort by order" ASC, "Avg. points per year active in racing" DESC, "Percentage of races with NULL placement" DESC
     Interestingly Leclerc does not have a particularly high non-finish percentage, at just 15.44%, so that does not explain the variance. I've categorized non-finish races as races where the placement variable is NULL
-    suggesting the driver did not finish the race. He does have a wide range of point scores across his 149 registered races tho, which could simply be the explanation for the lower average score per race.
+    suggesting the driver did not finish the race. He does have a significantly higher number of races entered per year at 21.29 compared to essentially all other drivers. With the exception of Max Verstappen, all other  
+    top drivers in this view have entered less than 20 races per year on average. So Leclerc might not actually be amongst the very best drivers, but entering more races per year, pushes his total average points per year  
+    up to match some of the very best drivers in the sport.  
 
-    - ORDER BY "Sort by order" ASC, "Percentage of races with NULL placement" ASC
-    Vettel is by far the driver with the lowest non-finish percentage, with just 8.43% of his races resulting in a NULL position, again, suggesting he did not finish the race.
+    - SELECT "Driver name", "Percentage of races with NULL placement" FROM Unioned_table ORDER BY "Sort by order" ASC, "Percentage of races with NULL placement" ASC
+    Vettel is by far the driver with the lowest non-finish percentage, with just 8.43% of his races resulting in a NULL position, again, suggesting he did not finish the race. Most all other drivers have double digit  
+    non-finish percentages, with the average across all included drivers (drivers with >1,000 career points) being 27.65%, but that's heavily influenced by the bottom 10-15 drivers.
 
-    - ORDER BY "Sort by order" ASC, "Latest season" DESC, "Avg. points per race" DESC
+    - SELECT "Driver name", "Latest season", "Avg. points per race" FROM Unioned_table ORDER BY "Sort by order" ASC, "Avg. points per race" DESC, "Latest season" DESC
     Only 7 out of the 31 drivers with a total of 1,000 or more points in their career have double digit average points per race, with Hamilton and Verstappen being the two drivers with the highest average points
-    per race out of all of them. The double digit average points per race drivers seem to be fairly spread out over time tho. Sorting by number of years since the drivers' last race participations spread out the
-    double digit average points per race drivers fairly well, with Hamilton and Verstappen being the current double digit drivers, and Senna, Prost & Stewart being double digit drivers from 30-50 years ago.
+    per race out of all of them. The double digit average points per race drivers seem to be fairly spread out over time tho. Sorting by the drivers' latest active season spread out the double digit average points 
+    per race drivers fairly well, with Hamilton and Verstappen being the current double digit drivers, and Senna, Prost & Stewart being double digit drivers from 30-50 years ago. Of course, Schumacher is also in the  
+    top 3 drivers from this perspective, with his latest active season being in 2012.  
 
-    - ORDER BY "Sort by order" ASC, "Standard deviation (~volatility)" ASC
+    - SELECT "Driver name", "Career points (modern scoring)", "Standard deviation (~volatility)" FROM Unioned_table ORDER BY "Sort by order" ASC, "Standard deviation (~volatility)" ASC
     Interestingly, sorting drivers by volatility shows that the volatility (standard deviation) of drivers ranges from about 6 to about 10.5, with no high scoring drivers, in terms of aggregated career points,
-    having a lower standard deviation than 8. This suggests that the higher performing drivers, across the board, are some of the more volatile ones, which would makes sense under the assumption that you likely
+    having a lower standard deviation than about 8. This suggests that the higher performing drivers, across the board, are some of the more volatile ones, which would makes sense under the assumption that you likely
     have to take risks in a race, if you want to hit a podium finish. Though, be aware that the variance in points scored between high placements and low placements is quite high. In other words, the difference
     in points awarded between someone getting a 1st and 2nd place finish is 7 points, while the difference between someone getting a 9th and 10th place finish is just 1 point. This means that someone who fluctuates
     between, say, the top 5 placements most of the time, is going to have a higher variation in points scored per race, than someone who fluctuates between the 6th and 10th position placement.
+    It is interesting to see Hamilton have an impressively low standard deviation of 8.88 relative to the other top drivers like Vettel (9.14) and Verstappen (9.47).  
+
     In my second query I'm going to look into how teams pair up more or less volatile drivers. Do they go for a team of two highly volatile drivers or do they tend to pair a lower volatility driver with a higher 
     volatility driver for a more balanced strategic approach?
 */
 
 WITH adjusted_results AS (
-    SELECT r.raceid, r.driverid, r.position, r.fastestlaprank, COALESCE(mps.modern_points, 0) AS modern_points -- Coalesce used to handle cases that return NULL. In this case when a position does NOT reward any points.
+    SELECT r.raceid, r.driverid, r.points, r.position, r.fastestlaprank, COALESCE(mps.modern_points, 0) AS modern_points -- Coalesce used to handle cases that return NULL. In this case when a position does NOT reward any points.
     FROM results r
     LEFT JOIN modern_points_system mps ON r.position = mps.position
 ),
 adjusted_results_with_bonus AS (
-    SELECT ar.raceid, ar.driverid, ar.position, ar.fastestlaprank, ar.modern_points, COALESCE(pffl.bonus_points, 0) as bonus_points -- Coalesce used to handle cases that return NULL. In this case for fastest lap time that don't reward points (only the #1 fastest lap per race gets awarded +1 points).
+    SELECT ar.raceid, ar.driverid, ar.points, ar.position, ar.fastestlaprank, ar.modern_points, COALESCE(pffl.bonus_points, 0) as bonus_points -- Coalesce used to handle cases that return NULL. In this case for fastest lap time that don't reward points (only the #1 fastest lap per race gets awarded +1 points).
     FROM adjusted_results ar
     LEFT JOIN points_for_fastest_lap pffl ON ar.fastestlaprank = pffl.fastestlaprank
 ),
@@ -101,7 +106,8 @@ max_year AS (
 Career_points_table AS (
     SELECT
         d.driverref AS "Driver name",
-        SUM(arwb.modern_points) + sum(arwb.bonus_points) AS "Career points",
+        SUM(arwb.points) AS "Career points (legacy scoring)",
+        SUM(arwb.modern_points) + sum(arwb.bonus_points) AS "Career points (modern scoring)",
         COUNT(DISTINCT arwb.raceid) AS "Races entered",
         ROUND(COUNT(DISTINCT arwb.raceid)::NUMERIC / COUNT(DISTINCT rc.raceyear), 2) AS "Races per year",
         ROUND(AVG(arwb.modern_points) + AVG(arwb.bonus_points), 2) AS "Avg. points per race",
@@ -123,7 +129,8 @@ Career_points_table AS (
 Final_output_table AS (
     SELECT
         cpt."Driver name",
-        cpt."Career points",
+        cpt."Career points (legacy scoring)",
+        cpt."Career points (modern scoring)",
         cpt."Races entered",
         cpt."Races per year",
         cpt."Avg. points per race",
@@ -154,38 +161,37 @@ Final_output_table AS (
         cpt."Percentage of races with NULL placement",
         1 AS "Sort by order"
     FROM Career_points_table cpt
+),
+Unioned_table AS (
+    SELECT * FROM Final_output_table
+    UNION ALL
+    SELECT
+        'Subtotals row (averages)',
+        ROUND(AVG("Career points (legacy scoring)"), 0),
+        ROUND(AVG("Career points (modern scoring)"), 0),
+        ROUND(AVG("Races entered"), 0),
+        ROUND(AVG("Races per year"), 2),
+        ROUND(AVG("Avg. points per race"), 2),
+        ROUND(AVG("Standard deviation (~volatility)"), 2),
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        ROUND(AVG("Years active in racing"), 0),
+        ROUND(AVG("Avg. points per year active in racing"), 2),
+        ROUND(AVG("Years since last active in a race"), 0),
+        ROUND(AVG("Races with NULL finish"), 0),
+        ROUND(AVG("Percentage of races with NULL placement"), 2),
+        2
+    FROM Final_output_table
 )
 
-SELECT * FROM Final_output_table
-UNION ALL
-SELECT
-    'Subtotals row (averages)',
-    ROUND(AVG("Career points"), 0),
-    ROUND(AVG("Races entered"), 0),
-    ROUND(AVG("Races per year"), 2),
-    ROUND(AVG("Avg. points per race"), 2),
-    ROUND(AVG("Standard deviation (~volatility)"), 2),
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    ROUND(AVG("Years active in racing"), 0),
-    ROUND(AVG("Avg. points per year active in racing"), 2),
-    ROUND(AVG("Years since last active in a race"), 0),
-    ROUND(AVG("Races with NULL finish"), 0),
-    ROUND(AVG("Percentage of races with NULL placement"), 2),
-    2
-FROM Final_output_table
--- ORDER BY "Sort by order" ASC, "Career points" DESC
-ORDER BY "Sort by order" ASC, "Avg. points per year active in racing" DESC, "Avg. points per race" DESC
--- ORDER BY "Sort by order" ASC, "Avg. points per year active in racing" DESC, "Races with NULL finish" DESC
--- ORDER BY "Sort by order" ASC, "Percentage of races with NULL placement" ASC
--- ORDER BY "Sort by order" ASC, "Latest season" DESC, "Avg. points per race" DESC
--- ORDER BY "Sort by order" ASC, "Standard deviation (~volatility)" ASC
-
-/*
-QUERY SHOWING POINT AGGREGATION PER YEAR PER DRIVER. Is it linear? Do they tend to follow the same trend? High volatility vs. lower volatility drivers
-*/
+SELECT "Driver name", "Career points (legacy scoring)", "Career points (modern scoring)", "Races entered", "Years active in racing" FROM Unioned_table ORDER BY "Sort by order" ASC, "Career points (modern scoring)" DESC
+-- SELECT "Driver name", "Avg. points per year active in racing", "Avg. points per race" FROM Unioned_table ORDER BY "Sort by order" ASC, "Avg. points per year active in racing" DESC, "Avg. points per race" DESC
+-- SELECT "Driver name", "Avg. points per year active in racing", "Avg. points per race", "Years active in racing", "Races per year", "Percentage of races with NULL placement" FROM Unioned_table ORDER BY "Sort by order" ASC, "Avg. points per year active in racing" DESC, "Percentage of races with NULL placement" DESC
+-- SELECT "Driver name", "Percentage of races with NULL placement" FROM Unioned_table ORDER BY "Sort by order" ASC, "Percentage of races with NULL placement" ASC
+-- SELECT "Driver name", "Latest season", "Avg. points per race" FROM Unioned_table ORDER BY "Sort by order" ASC, "Avg. points per race" DESC, "Latest season" DESC
+-- SELECT "Driver name", "Career points (modern scoring)", "Standard deviation (~volatility)" FROM Unioned_table ORDER BY "Sort by order" ASC, "Standard deviation (~volatility)" ASC
 
 /*
 TABLE SHOWING TEAM'S STRATEGIC CHOICES IN TEAMS OF PAIRING DRIVERS OF DIFFERENT VOLATILITY LEVELS. Does there seem to be a consistent strategy amongst teams? Are some teams outliers in terms of their choice of
