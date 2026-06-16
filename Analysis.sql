@@ -151,7 +151,7 @@ Unioned_table AS (
 SELECT * FROM Unioned_table;
 
 SELECT * FROM DriverPerformance
-/*This SELECT statement is just there in case you want to see the entire output table from the above CTE chain. The SELECT statetments below are my curated highlights with comments about what I find interesting.*/
+/*This SELECT statement is just there in case you want to see the entire output table from the above CTE chain. The SELECT statements below are my curated highlights with comments about what I find interesting.*/
 
 SELECT "Driver name", "Career points (legacy scoring)", "Career points (modern scoring)", "Races entered", "Years active in racing" FROM DriverPerformance ORDER BY "Sort by order" ASC, "Career points (modern scoring)" DESC
 /*First, let me define the two "Career points" columns in this table. The legacy scoring column uses the point distribution model from the year that a given race was driven, while the modern scoring column uses the most  
@@ -379,8 +379,11 @@ team_strategy_classification AS (
         fotf."G&L distance measure",
         fotf."Team/Drivers combo race counter"
     FROM final_output_table_filtered fotf
-),
-grouped_results_for_stints AS (
+)
+SELECT * FROM team_strategy_classification;
+
+CREATE TABLE TeamStrategyAggregated AS
+WITH grouped_results_for_stints AS (
     SELECT
         tsc."Year",
         tsc."Team name",
@@ -389,10 +392,16 @@ grouped_results_for_stints AS (
         tsc."Driver #2 name",
         ROUND(ABS(AVG(tsc."Driver #2 stint volatility trend")), 2) AS "ABS driver #2 stint volatility trend",
         AVG(tsc."Team/Drivers combo race counter")::INTEGER AS "Team/Drivers combo race counter"
-    FROM team_strategy_classification tsc
+    FROM TeamStrategy tsc
     GROUP BY tsc."Year", tsc."Driver #1 name", tsc."Driver #2 name", tsc."Team name"
 )
 SELECT * FROM grouped_results_for_stints;
+
+SELECT * FROM TeamStrategy
+/*This SELECT statement is just there in case you want to see the entire unaggregated output table from the above CTE chain.*/
+
+SELECT * FROM TeamStrategyAggregated
+/*This SELECT statement is just there in case you want to see the entire aggregated output table from the above CTE chain. The SELECT statements below are my curated highlights with comments about what I find interesting.*/
 
 SELECT * FROM team_strategy_classification ORDER BY "Team name" ASC, "Race ID" ASC;
 --SELECT * FROM grouped_results_for_stints ORDER BY "ABS driver #1 stint volatility trend" ASC, "ABS driver #2 stint volatility trend" ASC;
