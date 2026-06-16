@@ -154,8 +154,7 @@ SELECT * FROM DriverPerformance
 /*This SELECT statement is just there in case you want to see the entire output table from the above CTE chain. The SELECT statetments below are my curated highlights with comments about what I find interesting.*/
 
 SELECT "Driver name", "Career points (legacy scoring)", "Career points (modern scoring)", "Races entered", "Years active in racing" FROM DriverPerformance ORDER BY "Sort by order" ASC, "Career points (modern scoring)" DESC
-/*- SELECT "Driver name", "Career points (legacy scoring)", "Career points (modern scoring)", "Races entered", "Years active in racing" FROM DriverPerformance ORDER BY "Sort by order" ASC, "Career points (modern scoring)" DESC  
-First, let me define the two "Career points" columns in this table. The legacy scoring column uses the point distribution model from the year that a given race was driven, while the modern scoring column uses the most  
+/*First, let me define the two "Career points" columns in this table. The legacy scoring column uses the point distribution model from the year that a given race was driven, while the modern scoring column uses the most  
 recent scoring model for formula 1 races. This means that the legacy column shows how many points a driver actually earned in their career, but the modern column shows how many points they would have earned, if the  
 scoring methodology had been consistent over the years. And the difference really shows in the totals. Looking at Michael Schumacer, for instance, based on the legacy scoring models, his total career points comes nowhere  
 close to the other top 5 drivers sorted by modern points, but when the points per race are adjusted to use the modern scoring system, he's the 2nd best driver based on total career points. Another noteworthy thing is  
