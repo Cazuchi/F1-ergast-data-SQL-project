@@ -52,6 +52,7 @@ In my second query I'm going to look into how teams pair up more or less volatil
 volatility driver for a more balanced strategic approach?
 */
 
+DROP TABLE IF EXISTS DriverPerformance;
 CREATE TABLE DriverPerformance AS
 WITH adjusted_results AS (
     SELECT r.raceid, r.driverid, r.points, r.position, r.fastestlaprank, COALESCE(mps.modern_points, 0) AS modern_points -- Coalesce used to handle cases that return NULL. In this case when a position does NOT reward any points.
@@ -196,6 +197,7 @@ TABLE SHOWING TEAM'S STRATEGIC CHOICES IN TEAMS OF PAIRING DRIVERS OF DIFFERENT 
 paired drivers?
 */
 
+DROP TABLE IF EXISTS TeamStrategy;
 CREATE TABLE TeamStrategy AS
 WITH adjusted_results AS (
     SELECT r.raceid, r.driverid, r.constructorid, r.position, r.fastestlaprank, COALESCE(mps.modern_points, 0) AS modern_points -- Coalesce used to handle cases that return NULL. In this case when a position does NOT reward any points.
@@ -330,7 +332,7 @@ final_output_table_filtered AS (
         fot."Team/Drivers combo race counter"
     FROM final_output_table fot
     LEFT JOIN races rc ON fot."Race ID" = rc.raceid
-    WHERE fot."Team/Drivers combo race counter" >= 10
+    WHERE fot."Team/Drivers combo race counter" >= 10 AND fot."Driver #1 rolling STDDEV" IS NOT NULL AND fot."Driver #2 rolling STDDEV" IS NOT NULL
     WINDOW 
         stint_window_driver_1 AS (
             PARTITION BY fot."Driver #1 name", fot."G&L distance measure"
@@ -382,18 +384,20 @@ team_strategy_classification AS (
 )
 SELECT * FROM team_strategy_classification;
 
+DROP TABLE IF EXISTS TeamStrategyAggregated;
 CREATE TABLE TeamStrategyAggregated AS
 WITH grouped_results_for_stints AS (
     SELECT
         tsc."Year",
         tsc."Team name",
+        tsc."Team driver pairing strategy",
         tsc."Driver #1 name",
         ROUND(ABS(AVG(tsc."Driver #1 stint volatility trend")), 2) AS "ABS driver #1 stint volatility trend",
         tsc."Driver #2 name",
         ROUND(ABS(AVG(tsc."Driver #2 stint volatility trend")), 2) AS "ABS driver #2 stint volatility trend",
         AVG(tsc."Team/Drivers combo race counter")::INTEGER AS "Team/Drivers combo race counter"
     FROM TeamStrategy tsc
-    GROUP BY tsc."Year", tsc."Driver #1 name", tsc."Driver #2 name", tsc."Team name"
+    GROUP BY tsc."Year", tsc."Team driver pairing strategy", tsc."Driver #1 name", tsc."Driver #2 name", tsc."Team name"
 )
 SELECT * FROM grouped_results_for_stints;
 
