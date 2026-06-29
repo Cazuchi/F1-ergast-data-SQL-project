@@ -25,8 +25,11 @@ Two queries with different purposes:
 
 ## Basic PowerBi visualization
 I created a basic PowerBi visualization to show that the database imports cleanly into PowerBi and that the data output of my SQL queries is sensible. The visualization can be seen here:  
+
 https://app.powerbi.com/view?r=eyJrIjoiZDFhOGMyMTMtYzBjMS00Mjc1LTgzN2UtMGJjNjEzMDA3N2ZlIiwidCI6IjcwZjRhY2NiLTM3N2UtNDg5ZS04YjhiLTI4NjllYjQwYmQ3MSJ9  
+
 The graphs is just a simple scatterplot showing the difference in drivers' total career points between using the legacy scoring models in place when a given race took place and adjusting all of a driver's points to match the newest 25-point scoring model used in modern F1 races.  
+
 Legacy career points are shown on the x-axis. Modern career points are shown on the y-axis and the dots a colored depending on how large the difference is between the modern and the legacy career points totals:  
 * Green: Less than 50% difference  
 * Yellow: Between 50% and 100% difference  
