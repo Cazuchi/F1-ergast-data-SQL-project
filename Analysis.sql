@@ -192,10 +192,11 @@ in points awarded between someone getting a 1st and 2nd place finish is 7 points
 between, say, the top 5 placements most of the time, is going to have a higher variation in points scored per race, than someone who fluctuates between the 6th and 10th position placement.
 It is interesting to see Hamilton have an impressively low standard deviation of 8.88 relative to the other top drivers like Vettel (9.14) and Verstappen (9.47).*/  
 
-/*
-TABLE SHOWING TEAM'S STRATEGIC CHOICES IN TEAMS OF PAIRING DRIVERS OF DIFFERENT VOLATILITY LEVELS. Does there seem to be a consistent strategy amongst teams? Are some teams outliers in terms of their choice of
-paired drivers?
-*/
+/*The following query uses the Gaps & Islands methodology to combine driver pairs into stints, with a stint being defined as a continuous streak of races by the same pair of drivers for the same team.  
+Then metrics such as the change in drivers' volatility (std. dev. for points scored), drivers volatility rating (high / medium / low volatility) and teams' choices for the combination of high,  
+medium and low volatility drivers for their team is calculated. Similar to the above query, I have included a few queries below the following CTE chain that highlight a few findings that I find  
+interesting from the resulting output table, but my chosen highlight aren't exhaustive of all interesting findings in the output table, given how many perspectives you can take on the data to find  
+an interesting finding.*/
 
 DROP TABLE IF EXISTS TeamStrategy;
 CREATE TABLE TeamStrategy AS
@@ -399,7 +400,6 @@ WITH grouped_results_for_stints AS (
     FROM TeamStrategy tsc
     GROUP BY tsc."Year", tsc."Team driver pairing strategy", tsc."Driver #1 name", tsc."Driver #2 name", tsc."Team name"
 )
-SELECT * FROM grouped_results_for_stints;
 
 SELECT * FROM TeamStrategy
 /*This SELECT statement is just there in case you want to see the entire unaggregated output table from the above CTE chain.*/
@@ -407,9 +407,88 @@ SELECT * FROM TeamStrategy
 SELECT * FROM TeamStrategyAggregated
 /*This SELECT statement is just there in case you want to see the entire aggregated output table from the above CTE chain. The SELECT statements below are my curated highlights with comments about what I find interesting.*/
 
-SELECT * FROM team_strategy_classification ORDER BY "Team name" ASC, "Race ID" ASC;
---SELECT * FROM grouped_results_for_stints ORDER BY "ABS driver #1 stint volatility trend" ASC, "ABS driver #2 stint volatility trend" ASC;
---SELECT * FROM final_output_table_filtered WHERE "Driver #1 name" = 'ambrosio' AND "Team name" = 'Virgin';
+CREATE TABLE FerrariSummary AS
+SELECT 
+    "Team name",
+    "Driver #1 name",
+    ROUND(AVG("ABS driver #1 stint volatility trend"), 2) AS "Driver #1 stint volatility trend",
+    "Driver #2 name",
+    ROUND(AVG("ABS driver #2 stint volatility trend"), 2) AS "Driver #2 stint volatility trend",
+    ROUND(AVG("Team/Drivers combo race counter"), 2) AS "Team/Drivers combo race counter"
+FROM TeamStrategyAggregated 
+WHERE "Team name"='Ferrari' 
+GROUP BY
+    "Team name",
+    "Driver #1 name",
+    "Driver #2 name";
+
+SELECT
+    *
+FROM FerrariSummary
+ORDER BY
+    "Team/Drivers combo race counter" DESC;
+/*Looking at Ferrari specifically there are some interesting findings. The combo of Barrichello and Michael Schumacher is Ferrari's longest lasting driver pair, with 104 races total together.  
+The other most noteworthy pair in terms of the number of races together, is Raikkonen and Vettel with 81 races together for Ferrari. After that the gap in the duration of the stint of  
+each pair of drivers becomes much shorter. Do note, however, that both Michael Schumacher and Raikkonen have been in multiple driver pairs for Ferrari, meaning their individual stints for the  
+team is significantly longer.*/
+
+SELECT
+    "Team name",
+    'Michael Schumacher' AS "Driver name",
+    SUM("Team/Drivers combo race counter") AS "Total races driven for Ferrari"
+FROM FerrariSummary
+WHERE "Driver #1 name"='michael_schumacher' OR "Driver #2 name"='michael_schumacher'
+GROUP BY
+    "Team name";
+/*Summarizing all of the races that Michael Schumacher has done with various partners on the Ferrari team, shows he's driven a total of 173 races for Ferrari.*/
+
+DROP TABLE IF EXISTS MichaelSchumacherSummary;
+CREATE TABLE MichaelSchumacherSummary AS
+SELECT
+    "Year",
+    "Team name",
+    "Driver #1 name",
+    "Driver #2 name",
+    "Team/Drivers combo race counter"
+FROM TeamStrategyAggregated
+WHERE "Driver #1 name"='michael_schumacher' OR "Driver #2 name"='michael_schumacher'
+ORDER BY
+    "Year" DESC;
+SELECT * FROM MichaelSchumacherSummary;
+/*Going a step further an looking at Michael Schumacher's broader career, shows that he drove for Benetton before driving for Ferrari and drove for Mercedes after driving for Ferrari.*/  
+
+WITH MS_TeamSummary AS (
+    SELECT
+        "Team name",
+        "Driver #1 name",
+        "Driver #2 name",
+        ROUND(AVG("Team/Drivers combo race counter"), 2) AS "Team/Drivers combo race counter"
+    FROM MichaelSchumacherSummary
+    GROUP BY
+        "Team name",
+        "Driver #1 name",
+        "Driver #2 name",
+        "Team/Drivers combo race counter"
+),
+MS_TotalRacesPerTeam AS (
+    SELECT
+        "Team name",
+        ROUND(SUM("Team/Drivers combo race counter"), 0) AS "Total races for team"
+    FROM MS_TeamSummary
+    GROUP BY
+        "Team name"
+),
+MS_UnionedTable AS (
+    SELECT * FROM MS_TotalRacesPerTeam
+    UNION ALL
+    SELECT
+        'Total across all teams',
+        ROUND(SUM("Total races for team"), 0)
+    FROM MS_TotalRacesPerTeam
+)
+
+SELECT * FROM MS_UnionedTable;
+/*In total Michael Schumacher has completed 280 races within the time cutoff of this dataset, with 173 races being for Ferrari, 49 being for Benetton and 58 being for Mercedes.*/  
 
 /*Appendix: Use the following to get an overview of my database's tables:*/
 SELECT table_name FROM information_schema.tables
